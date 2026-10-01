@@ -5,9 +5,170 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum MembershipTypes {
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+}
+
+enum FacilityTypes {
+  GYM
+  SWIMMING_POOL
+  FOOTBALL
+  SAUNA
+  SHOWER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum RoleName {
+  ADMIN
+  MEMBER
+  COACH
+  STAFF
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  roleId       String   @map("role_id")
+  passwordHash String   @map("password_hash")
+  tokenVersion Int      @default(0) @map("token_version")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  sessions      AuthSession[]
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@map("users")
+}
+
+model Role {
+  id   String   @id @default(uuid())
+  name RoleName @unique
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Permission {
+  id     String @id @default(uuid())
+  action String @unique
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model Plan {
+  id       String          @id @default(uuid())
+  name     MembershipTypes @unique
+  duration Int
+  price    Decimal
+
+  facilities    PlanFacility[]
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Facility {
+  id   String        @id @default(uuid())
+  name FacilityTypes @unique
+
+  plans PlanFacility[]
+
+  @@map("facilities")
+}
+
+model PlanFacility {
+  planId     String @map("plan_id")
+  facilityId String @map("facility_id")
+
+  plan     Plan     @relation(fields: [planId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@id([facilityId, planId])
+  @@map("plan_facilities")
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  userId    String             @map("user_id")
+  planId    String             @map("plan_id")
+  startDate DateTime           @map("start_date")
+  endDate   DateTime           @map("end_date")
+  status    SubscriptionStatus @default(ACTIVE)
+
+  user User @relation(fields: [userId], references: [id])
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  amount    Decimal
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("payments")
+}
+
+model AuthSession {
+  id                   String    @id @default(uuid())
+  userId               String    @map("user_id")
+  currentRefreshDigest String    @map("current_refresh_digest")
+  expiresAt            DateTime  @map("expires_at")
+  revokedAt            DateTime? @map("revoked_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("auth_sessions")
 }
