@@ -1,0 +1,137 @@
+import { Request, Response } from "express";
+import * as services from '../services/user.service.js';
+
+export async function getUsers(req: Request, res: Response){
+    const id = req.user!.userId;
+    
+    const user = await services.findUser(id);
+    
+    if(!user){
+        return res.status(404).json({message: "Couldn't find user"});
+    }
+    return res.status(200).json({message: "User Fetched Successfully!", user})
+};
+
+export async function infoChange(req: Request, res: Response){
+    const id = req.user!.userId;
+    const data = req.body;
+
+    const user = await services.infoPatch(id, data);
+    if(!user){
+        return res.status(400).json({message: "Failed to Update!"})
+    }
+    return res.status(200).json({message: "Updated Successfully!", user});
+};
+
+export async function deleteUser(req: Request, res: Response){
+    const id = req.user!.userId;
+
+    const user = await services.userDelete(id);
+    if(!user){
+        return res.status(400).json({message: "Couldn't Delete User!"})
+    }
+    return res.status(200).json({message: "Deleted Successfully!"})
+};
+
+export async function getSubscription(req: Request<{id:string}>, res: Response){
+    const {id} = req.params;
+    const userId = req.user!.userId;
+    const query = req.query;
+
+    const subscription = await services.findSubscription(userId, id, query);
+    if(!subscription){
+        return res.status(404).json({message: "No Subscriptions Found!"});
+    }
+    return res.status(200).json({message: "Subscriptions:", subscription});
+};
+
+export async function createSubscription(req: Request, res: Response){
+    const body = req.body;
+    const userId = req.user!.userId;
+
+    const {subscription, payment} = await services.postSubscription(userId, body);
+    if(!subscription){
+        return res.status(404).json({message: "Unable to create Subscription!"})
+    }
+    return res.status(201).json({message: "Subscription Successfully Created!", subscription, payment});
+};
+
+export async function changeSubscription(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+
+    const subscription = await services.cancelSubscription(id);
+    if(!subscription){
+        return res.status(404).json({message: "Unable to change status"});
+    }
+    return res.status(200).json({message: "Successfully Updated Status!", subscription});
+};
+
+export async function deleteSubscription(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+
+    const subscription = await services.removeSubscription(id);
+    if(!subscription){
+        return res.status(404).json({message: "Unable to Delete Subscription!"});
+    }
+
+    return res.status(200).json({message: "Successfully Deleted Subscription!"});
+};
+
+export async function getPayment(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+    const userId = req.user!.userId;
+    const query = req.query;
+
+    const payment = await services.findPayment(userId, id, query);
+    if(!payment){
+        return res.status(404).json({message: "Unabele to Find Payment!"});
+    }
+
+    return res.status(200).json({message: "Payment Found!"});
+};
+
+export async function cancelPayment(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+
+    const payment = await services.patchPayment(id);
+    if(!payment){
+        return res.status(404).json({message: "Unable to change status!"});
+    }
+
+    return res.status(200).json({message: "Cancelled Payment!"});
+};
+
+export async function getSessions(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+    const userId = req.user!.userId;
+    const query = req.query;
+
+    const session = await services.findSession(userId, id, query);
+    if(!session){
+        return res.status(404).json({message: "Session not Found!"});
+    }
+
+    return res.status(200).json({message: "Session Found!", session});
+};
+
+export async function createSession(req: Request, res: Response){
+    const body = req.body; 
+    const userId = req.user!.userId;
+
+    const session = await services.postSession(userId, body);
+    if(!session){
+        return res.status(404).json({message: "Unable to create a session"});
+    }
+    return res.status(201).json({message: "Session Created Successfully!"});
+};
+
+export async function checkOutSession(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+
+    const session = await services.checkOut(id);
+    if(!session){
+        return res.status(404).json({message: "Unable to Check Out!"});
+    }
+
+    return res.status(200).json({message: "Checked Out Successfully!"});
+};
