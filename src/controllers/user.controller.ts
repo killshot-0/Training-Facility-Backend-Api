@@ -53,7 +53,10 @@ export async function createSubscription(req: Request, res: Response){
     if(!subscription){
         return res.status(404).json({message: "Unable to create Subscription!"})
     }
-    return res.status(201).json({message: "Subscription Successfully Created!", subscription, payment});
+    if(!payment){
+        return res.status(404).json({message: "Unable to create Payment!"})
+    }
+    return res.status(201).json({message: "Successfully Created Subscription and Payment!", subscription, payment});
 };
 
 export async function changeSubscription(req: Request<{id: string}>, res: Response){
@@ -66,17 +69,6 @@ export async function changeSubscription(req: Request<{id: string}>, res: Respon
     return res.status(200).json({message: "Successfully Updated Status!", subscription});
 };
 
-export async function deleteSubscription(req: Request<{id: string}>, res: Response){
-    const {id} = req.params;
-
-    const subscription = await services.removeSubscription(id);
-    if(!subscription){
-        return res.status(404).json({message: "Unable to Delete Subscription!"});
-    }
-
-    return res.status(200).json({message: "Successfully Deleted Subscription!"});
-};
-
 export async function getPayment(req: Request<{id: string}>, res: Response){
     const {id} = req.params;
     const userId = req.user!.userId;
@@ -87,7 +79,7 @@ export async function getPayment(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unabele to Find Payment!"});
     }
 
-    return res.status(200).json({message: "Payment Found!"});
+    return res.status(200).json({message: "Payment Found!", payment});
 };
 
 export async function cancelPayment(req: Request<{id: string}>, res: Response){
@@ -98,7 +90,7 @@ export async function cancelPayment(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unable to change status!"});
     }
 
-    return res.status(200).json({message: "Cancelled Payment!"});
+    return res.status(200).json({message: "Cancelled Payment!", payment});
 };
 
 export async function getSessions(req: Request<{id: string}>, res: Response){
@@ -122,7 +114,7 @@ export async function createSession(req: Request, res: Response){
     if(!session){
         return res.status(404).json({message: "Unable to create a session"});
     }
-    return res.status(201).json({message: "Session Created Successfully!"});
+    return res.status(201).json({message: "Session Created Successfully!", session});
 };
 
 export async function checkOutSession(req: Request<{id: string}>, res: Response){
@@ -133,5 +125,5 @@ export async function checkOutSession(req: Request<{id: string}>, res: Response)
         return res.status(404).json({message: "Unable to Check Out!"});
     }
 
-    return res.status(200).json({message: "Checked Out Successfully!"});
+    return res.status(200).json({message: "Checked Out Successfully!", session});
 };

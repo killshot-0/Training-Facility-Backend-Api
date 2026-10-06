@@ -15,8 +15,9 @@
 - GET api/admin/users      //get all the users
 - GET api/admin/users/:id      //get a specific users
 - PATCH api/admin/users/:id      //get all the users
-- PATCH /api/admin/users/:id/role  //changes the role of a user
 - DELETE api/admin/users/:id      //get all the users
+
+- PATCH /api/admin/:id/role  //changes the role of a user
 
 - GET api/admin/plan/users   //get all users subscribed to a plan
 - PATCH api/admin/plan/:id   //changes plan price

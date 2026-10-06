@@ -3,7 +3,7 @@ import { MembershipTypes, SubscriptionStatus, PlanTypes, PaymentStatus, Facility
 
 export const idSchema = z.object({
     params: z.object({
-        id: z.uuid().optional(),
+        id: z.uuid(),
     })
 });
 export const dataChangeSchema = z.object({
@@ -41,8 +41,10 @@ export const paymentQuerySchema = z.object({
 export const sessionQuerySchema = z.object({
     query: z.object({
         facility: z.enum(FacilityTypes).optional(),
-        checkIn: z.coerce.date().optional(),
-        checkOut: z.coerce.date().optional()
+        checkInAfter: z.coerce.date().optional(),
+        checkInBefore: z.coerce.date().optional(),
+        checkOutAfter: z.coerce.date().optional(),
+        checkOutBefore: z.coerce.date().optional()
     })
 });
 

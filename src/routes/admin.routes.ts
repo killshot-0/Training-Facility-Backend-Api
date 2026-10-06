@@ -9,9 +9,13 @@ adminRouter.patch("/users/:id/role");
 adminRouter.delete("/users/:id");
 
 adminRouter.get("/plan/users");
+adminRouter.post("/plan");
 adminRouter.patch("/plan/:id");
 adminRouter.delete("/plan/:id");
 
+adminRouter.get("/facilities/");
+adminRouter.get("/facilities/:id");
+adminRouter.post("/facilities/");
 adminRouter.delete("/facilities/:id");
 
 adminRouter.get("/role/users");

@@ -128,12 +128,6 @@ export function cancelSubscription(id: string){
     });
 };
 
-export function removeSubscription(id: string){
-    return prisma.subscription.delete({
-        where: {id}
-    });
-};
-
 export function findPayment(userId?: string, id?: string, query?: PaymentQueryInput){
     if(id){
         return prisma.payment.findUnique({
@@ -193,11 +187,25 @@ export function findSession(userId?: string, id?: string, query?: SessionQueryIn
             ...(query?.facility !== undefined && {
                 facility: {name: query.facility}
             }),
-            ...(query?.checkIn !== undefined && {
-                checkIn: query.checkIn
+            ...((query?.checkInAfter !== undefined || query?.checkInBefore !== undefined) && {
+                checkIn: {
+                    ...(query?.checkInAfter !== undefined && {
+                        gte: query.checkInAfter
+                    }),
+                    ...(query?.checkInBefore !== undefined && {
+                        lte: query.checkInBefore
+                    })
+                }
             }),
-            ...(query?.checkOut !== undefined && {
-                checkOut: query.checkOut
+            ...((query?.checkOutAfter !== undefined || query?.checkOutBefore !== undefined) && {
+                checkOut: {
+                    ...(query.checkOutAfter !== undefined && {
+                        gte: query.checkOutAfter
+                    }),
+                    ...(query.checkOutBefore !== undefined && {
+                        lte: query.checkOutBefore
+                    })
+                }
             })
         }
     });
