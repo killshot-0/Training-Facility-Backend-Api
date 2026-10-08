@@ -1,5 +1,10 @@
 import { stat } from "node:fs";
+import { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
+import { supabase } from "../lib/storage.js";
+import { env } from "../config/env.js";
+import path from "path";
+import crypto from "crypto";
 import { 
     DataChangeInput, 
     SubscriptionQueryInput, 
@@ -9,9 +14,25 @@ import {
     SessionCreateInput
 } from "../schemas/user.schemas.js";
 import { hashPassword } from "../utils/password.js";
+import { en } from "zod/locales";
+
+export const safeUserSelect = {
+  id: true,
+  email: true,
+  role: {
+    select:{
+        name: true
+    }
+  },
+  createdAt: true,
+  avatarUrl: true
+} satisfies Prisma.UserSelect;
 
 export function findUser(id: string){
-    return prisma.user.findUnique( { where: { id } } );
+    return prisma.user.findUnique({ 
+        where: { id },
+        select: safeUserSelect 
+    });
 };
 
 export async function infoPatch(id: string, data: DataChangeInput){
@@ -27,7 +48,73 @@ export async function infoPatch(id: string, data: DataChangeInput){
             ...(data.password && {
                 passwordHash: await hashPassword(data.password)
             }),
+        },
+        select: safeUserSelect
+    });
+};
+
+export async function addAvatar(userId: string, file: Express.Multer.File){
+    const user = await prisma.user.findUnique({
+        where: {id: userId},
+        select: {avatarPath: true}
+    });
+
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    const uniqueFileName = `avatars/${crypto.randomUUID()}${fileExtension}`;
+
+    const {data, error} = await supabase.storage
+        .from(env.SUPABASE_STORAGE_BUCKET)
+        .upload(uniqueFileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+    if(error){
+        throw new Error(`Cloud Storage Failed: ${error.message}`);
+    }
+
+    const {data: publicUrlData} = supabase.storage
+        .from(env.SUPABASE_STORAGE_BUCKET)
+        .getPublicUrl(data.path);
+
+    const updatedUser = prisma.user.update({
+        where: {id: userId},
+        data: {
+            avatarUrl: publicUrlData.publicUrl,
+            avatarPath: data.path
+        },
+        select: safeUserSelect
+    });
+
+    if(user?.avatarPath){
+        const {error} = await supabase.storage.from(env.SUPABASE_STORAGE_BUCKET).remove([user.avatarPath]);
+        if(error){
+            console.error(`Failed to remove asset from bucket: ${error.message}`);
         }
+    }
+
+    return updatedUser;
+};
+
+export async function removeAvatar(userId: string){
+    const filePath = await prisma.user.findUnique({
+        where: {id: userId},
+        select: {avatarPath: true}
+    });
+    if(!filePath?.avatarPath){
+        return null
+    }
+    const {error} = await supabase.storage.from(env.SUPABASE_STORAGE_BUCKET).remove([filePath.avatarPath]);
+
+    if(error){
+        throw new Error(`Failed to remove asset from bucket: ${error.message}`);
+    }
+    return prisma.user.update({
+        where: {id: userId},
+        data: {
+            avatarUrl: null,
+            avatarPath: null
+        },
+        select: safeUserSelect
     });
 };
 
@@ -96,6 +183,10 @@ export function postSubscription(userId: string, body: SubscriptionCreateInput){
                 startDate: startDate,
                 endDate: endDate,
                 status: "ACTIVE"
+            },
+            include: {
+                user: true,
+                plan: true
             }
         });
 

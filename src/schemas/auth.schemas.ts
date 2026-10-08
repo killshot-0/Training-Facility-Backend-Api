@@ -20,6 +20,6 @@ export const loginSchema = z.object({
 });
 
 export type PasswordInput = z.infer<typeof passwordSchema>;
-export type emialInput = z.infer<typeof emailSchema>;
-export type registerInput = z.infer<typeof registerSchema>["body"];
-export type loginInput = z.infer<typeof loginSchema>["body"];
+export type EmailInput = z.infer<typeof emailSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>["body"];
+export type LoginInput = z.infer<typeof loginSchema>["body"];

@@ -12,6 +12,7 @@ const paymentRouter = Router();
 paymentRouter.get("/", validate(paymentQuery1Schema), controllers.getPayments);     //get payments with query options
 paymentRouter.get("/:id", validate(idSchema), controllers.getPayments);  //get a specific payment
 
+paymentRouter.patch("/:id/confirm");   //confirm the payment receipt uploaded by the user
 paymentRouter.patch("/:id", validate(paymentChangeSchema), controllers.changePaymentStatus);    //change the status of a user's payment
 
 //POST already made along the subscription POST

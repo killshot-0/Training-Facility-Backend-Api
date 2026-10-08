@@ -7,6 +7,7 @@ export function validate(schema: z.ZodType) {
       body: req.body,
       params: req.params,
       query: req.query,
+      file: req.file
     });
 
     if (!result.success) {
@@ -23,6 +24,7 @@ export function validate(schema: z.ZodType) {
       body?: unknown;
       params?: unknown;
       query?: unknown;
+      file?: unknown;
     };
 
     if (parsed.body !== undefined) req.body = parsed.body;

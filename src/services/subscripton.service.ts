@@ -78,6 +78,10 @@ export async function postSubscription(body: SubscriptionCreateInput1){
                 startDate,
                 endDate,
                 status: "ACTIVE"
+            },
+            include: {
+                user: true,
+                plan: true
             }
         });
         const amount = await tx.planPrice.findUniqueOrThrow({

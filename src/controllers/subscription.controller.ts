@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as services from '../services/subscripton.service.js';
-
+import * as EmailServices from '../services/email.service.js';
 
 export async function getSubscription(req: Request<{id: string}>, res: Response){
     const {id} = req.params;
@@ -32,7 +32,18 @@ export async function createSubscription(req: Request, res: Response){
     if(!payment){
         return res.status(404).json({message: "Unable to create Payment!"})
     }
-    return res.status(201).json({message: "Successfully Created Subscription and Payment", subscription, payment});
+    res.status(201).json({message: "Successfully Created Subscription and Payment", subscription, payment});
+    
+    EmailServices.sendSubscriptionConfirmation(req.user!.email, {
+        memberName: subscription.user.name,
+        plan: subscription.plan.name,
+        membership: subscription.membership,
+        startDate: subscription.startDate.toISOString(),
+        endDate: subscription.endDate.toISOString(),
+        amountToPay: payment.amount.toString()
+    }).catch((err) => {
+        console.error(`[Background Email Error]: Failed to notify ${req.user!.email}`, err);
+    });
 };
 
 export async function changeSubscriptionStatus(req: Request<{id: string}>, res: Response){

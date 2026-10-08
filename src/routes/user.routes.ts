@@ -9,12 +9,16 @@ import {
     sessionQuerySchema ,
     sessionCreateSchema
 } from "../schemas/user.schemas.js";
+import { avatarFileSchema } from "../schemas/file.schemas.js";
+import { upload } from "../config/multer.js";
 import * as controllers from "../controllers/user.controller.js";
 
 const userRouter = Router();
 
 userRouter.get("/me", controllers.getUsers);  //get the current user
 userRouter.patch("/me", validate(dataChangeSchema), controllers.infoChange);    //Allows a user to change their name, email, password
+userRouter.patch("/me/avatar", upload.single("avatar"), validate(avatarFileSchema), controllers.uploadAvatar);   //Upload a user's avatar
+userRouter.patch("/me/remove-avatar", controllers.deleteAvatar);   //Remove the user's avatar
 userRouter.delete("/me", controllers.deleteUser);  
 
 userRouter.get("/subscriptions", validate(subscriptionQuerySchema), controllers.getSubscription);  //get the current user's subscription with query options
@@ -25,6 +29,7 @@ userRouter.patch("/subscription/:id/status", validate(idSchema), controllers.cha
 userRouter.get("/payments", validate(paymentQuerySchema), controllers.getPayment);
 userRouter.get("/payments/:id", validate(idSchema), controllers.getPayment);
 userRouter.patch("/payments/:id",validate(idSchema), controllers.cancelPayment);
+userRouter.patch("/payment/:id/upload");   //Users can uplaod an image of a payment receipt
 
 userRouter.get("/sessions", validate(sessionQuerySchema), controllers.getSessions);
 userRouter.get("/sessions/:id", validate(idSchema), controllers.getSessions);

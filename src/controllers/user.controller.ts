@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as services from '../services/user.service.js';
+import * as EmailServices from '../services/email.service.js';
 
 export async function getUsers(req: Request, res: Response){
     const id = req.user!.userId;
@@ -21,6 +22,24 @@ export async function infoChange(req: Request, res: Response){
         return res.status(400).json({message: "Failed to Update!"})
     }
     return res.status(200).json({message: "Updated Successfully!", user});
+};
+
+export async function uploadAvatar(req: Request, res: Response){
+    const userId = req.user!.userId;
+    const file = req.file as Express.Multer.File;
+
+    const user = await services.addAvatar(userId, file);
+    if(!user){
+        return res.status(404).json({message: "Unable to add avatar!"});
+    }
+
+    return res.status(200).json({message: "Avatar added Successfully!", user});
+};
+
+export async function deleteAvatar(req: Request, res: Response){
+    const userId = req.user!.userId;
+    
+    const user = await services.removeAvatar(userId);
 };
 
 export async function deleteUser(req: Request, res: Response){
@@ -56,7 +75,18 @@ export async function createSubscription(req: Request, res: Response){
     if(!payment){
         return res.status(404).json({message: "Unable to create Payment!"})
     }
-    return res.status(201).json({message: "Successfully Created Subscription and Payment!", subscription, payment});
+    res.status(201).json({message: "Successfully Created Subscription and Payment!", subscription, payment});
+
+    EmailServices.sendSubscriptionConfirmation(req.user!.email, {
+        memberName: subscription.user.name,
+        plan: subscription.plan.name,
+        membership: subscription.membership,
+        startDate: subscription.startDate.toISOString(),
+        endDate: subscription.endDate.toISOString(),
+        amountToPay: payment.amount.toString()
+    }).catch((err) => {
+        console.error(`[Background Email Error]: Failed to notify ${req.user!.email}`, err);
+    });
 };
 
 export async function changeSubscription(req: Request<{id: string}>, res: Response){

@@ -56,6 +56,8 @@ model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
+  avatarUrl    String?  @map("avatar_url")
+  avatarPath   String?  @map("avatar_path")
   roleId       String   @map("role_id")
   passwordHash String?  @map("password_hash")
   tokenVersion Int      @default(0) @map("token_version")
@@ -68,8 +70,21 @@ model User {
   payments          Payment[]
   auth_sessions     AuthSession[]
   facility_sessions FacilitySession[]
+  accounts          Account[]
 
   @@map("users")
+}
+
+model Account {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now()) @map("created_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Role {
@@ -169,6 +184,8 @@ model Payment {
   userId         String        @map("user_id")
   subscriptionId String        @map("subscription_id")
   amount         Decimal
+  paymentUrl     String?       @map("payment_url")
+  paymentPath    String?       @map("payment_path")
   status         PaymentStatus @default(PENDING)
   createdAt      DateTime      @default(now()) @map("created_at")
 
