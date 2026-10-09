@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import multer from "multer";
 
-export async function errorHandeler(err: any, req: Request, res: Response, next: NextFunction){
+export async function errorHandler(err: any, req: Request, res: Response, next: NextFunction){
     if(err instanceof multer.MulterError){
         if (err.code === "LIMIT_FILE_SIZE") {
             return res.status(400).json(
