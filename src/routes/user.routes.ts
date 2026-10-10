@@ -4,7 +4,8 @@ import { permission } from "../middlewares/permission.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import { 
     checkSubscrptionOwnership,
-    checkPaymentOwnership 
+    checkPaymentOwnership ,
+    checkSessionOwnership
 } from "../middlewares/ownership.middleware.js";
 import { 
     idSchema, 
@@ -38,11 +39,11 @@ userRouter.patch("/subscription/:id/status", validate(idSchema), checkSubscrptio
 userRouter.get("/payments", validate(paymentQuerySchema), asyncHandler(controllers.getPayment));
 userRouter.get("/payments/:id", validate(idSchema), checkPaymentOwnership, asyncHandler(controllers.getPayment));
 userRouter.patch("/payments/:id",validate(idSchema), checkPaymentOwnership, asyncHandler(controllers.cancelPayment));
-userRouter.patch("/payment/:id/upload", upload.single("payment"), validate(paymentFileSchema), asyncHandler(controllers.uploadPayment));   //Users can uplaod an image of a payment receipt
+userRouter.patch("/payment/:id/upload", upload.single("payment"), validate(paymentFileSchema), checkPaymentOwnership, asyncHandler(controllers.uploadPayment));   //Users can uplaod an image of a payment receipt
 
 userRouter.get("/sessions", validate(sessionQuerySchema), asyncHandler(controllers.getSessions));
-userRouter.get("/sessions/:id", validate(idSchema), asyncHandler(controllers.getSessions));
+userRouter.get("/sessions/:id", validate(idSchema), checkSessionOwnership, asyncHandler(controllers.getSessions));
 userRouter.post("/sessions", validate(sessionCreateSchema), asyncHandler(controllers.createSession));
-userRouter.patch("/sessions/:id/checkout", validate(idSchema), asyncHandler(controllers.checkOutSession));
+userRouter.patch("/sessions/:id/checkout", validate(idSchema), checkSessionOwnership, asyncHandler(controllers.checkOutSession));
 
 export default userRouter;
