@@ -43,6 +43,7 @@ enum PaymentStatus {
   PENDING
   COMPLETED
   CANCELLED
+  REJECTED
 }
 
 enum RoleName {

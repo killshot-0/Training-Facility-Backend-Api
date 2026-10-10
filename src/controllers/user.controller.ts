@@ -19,7 +19,7 @@ export async function infoChange(req: Request, res: Response){
 
     const user = await services.infoPatch(id, data);
     if(!user){
-        return res.status(400).json({message: "Failed to Update!"})
+        return res.status(400).json({message: "Failed to Update!"});
     }
     return res.status(200).json({message: "Updated Successfully!", user});
 };
@@ -30,16 +30,21 @@ export async function uploadAvatar(req: Request, res: Response){
 
     const user = await services.addAvatar(userId, file);
     if(!user){
-        return res.status(404).json({message: "Unable to add avatar!"});
+        return res.status(404).json({message: "Unable to upload avatar!"});
     }
 
-    return res.status(200).json({message: "Avatar added Successfully!", user});
+    return res.status(200).json({message: "Avatar uploaded Successfully!", user});
 };
 
 export async function deleteAvatar(req: Request, res: Response){
     const userId = req.user!.userId;
     
     const user = await services.removeAvatar(userId);
+    if(!user){
+        return res.status(404).json({message: "Unable to delete avatar!"});
+    }
+
+    return res.status(200).json({message: "Avatar deleted successfully!", user});
 };
 
 export async function deleteUser(req: Request, res: Response){
@@ -121,6 +126,18 @@ export async function cancelPayment(req: Request<{id: string}>, res: Response){
     }
 
     return res.status(200).json({message: "Cancelled Payment!", payment});
+};
+
+export async function uploadPayment(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+    const file = req.file! as Express.Multer.File;
+
+    const payment = await services.addPayment(id, file);
+    if(!payment){
+        return res.status(404).json({message: "Unable to upload Payment!"});
+    }
+
+    return res.status(200).json({message: "Payment uploaded successfully!", payment});
 };
 
 export async function getSessions(req: Request<{id: string}>, res: Response){

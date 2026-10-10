@@ -266,6 +266,55 @@ export async function patchPayment(id: string){
     });
 };
 
+export async function addPayment(id: string, file: Express.Multer.File){
+    const payment = await prisma.payment.findUnique({
+        where: {id},
+        select: {
+            paymentPath: true,
+            status: true
+        }
+    });
+
+    if(payment?.status === "COMPLETED" || payment?.status === "CANCELLED"){
+        return null
+    }
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    const uniqueFileName = `payments/${crypto.randomUUID()}${fileExtension}`;
+
+    const {data, error} = await supabase.storage
+        .from(env.SUPABASE_STORAGE_BUCKET)
+        .upload(uniqueFileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+        
+    if(error){
+        throw new Error(`Cloud Storage Failed: ${error.message}`);
+    }
+
+    const {data: publicUrlData} = supabase.storage
+        .from(env.SUPABASE_STORAGE_BUCKET)
+        .getPublicUrl(data.path);
+    
+    const updatedPayment = await prisma.payment.update({
+        where: {id},
+        data: {
+            paymentUrl: publicUrlData.publicUrl,
+            paymentPath: data.path
+        },
+        select: safeUserSelect
+    });
+
+    if(payment?.paymentPath){
+        const {error} = await supabase.storage.from(env.SUPABASE_STORAGE_BUCKET).remove([payment.paymentPath]);
+        if(error){
+            console.error(`Failed to delete asset from bucket: ${error.message}`);
+        }
+    }
+
+    return updatedPayment;
+};
+
 export function findSession(userId?: string, id?: string, query?: SessionQueryInput){
     if(id){
         return prisma.facilitySession.findUnique({

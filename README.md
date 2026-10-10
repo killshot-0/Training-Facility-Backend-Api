@@ -14,7 +14,6 @@
 ### Admin
 - GET api/admin/users      //get all the users
 - GET api/admin/users/:id      //get a specific users
-- PATCH api/admin/users/:id      //get all the users
 - DELETE api/admin/users/:id      //get all the users
 
 - PATCH /api/admin/:id/role  //changes the role of a user
@@ -29,7 +28,7 @@
 
 - GET api/admin/subscriptions  //get all the subscriptions
 - GET api/admin/subscriptions/:id  //get a specific subscription
-- GET api/admin/subscriptions/user  //get all the subscriptions of a user
+- GET api/admin/subscriptions/user  //get all the user with subscriptions along with the subscriptions
 - PATCH api/admin/subscriptions/:id  //change a subscription information like status to expired
 - DELETE api/admin/subscriptions/:id  //deletes a subscription
 

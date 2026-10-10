@@ -12,6 +12,17 @@ export async function getPayments(req: Request<{id: string}>, res: Response){
     return res.status(200).json({message: "Payment Found!", payment});
 };
 
+export async function getReceipt(req: Request<{id: string}>, res: Response){
+    const {id} = req.params;
+
+    const receipt = await services.findReceipt(id);
+    if(!receipt){
+        return res.status(404).json({message: "Unable to find Receipt!"});
+    }
+    
+    return res.status(200).json({message: "Receipt Found!", receipt});
+};
+
 export async function changePaymentStatus(req: Request<{id: string}>, res: Response){
     const {id} = req.params;
     const body = req.body;

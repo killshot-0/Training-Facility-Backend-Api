@@ -130,11 +130,6 @@ export async function logout(req: Request, res: Response){
 };
 
 export async function logoutAll(req: Request, res: Response){
-    const principal = req.user!;
-
-    if(principal.role !== "ADMIN"){
-        return res.status(403).json({message: "Unauthorized!"});
-    }
     await services.logOutAll();
 
     res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieBaseOptions);

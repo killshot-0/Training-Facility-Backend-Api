@@ -1,119 +1,176 @@
 import { prisma } from '../src/lib/prisma.js';
-import { RoleName, PlanTypes, FacilityTypes } from '../src/generated/prisma/enums.js';
+import { env } from '../src/config/env.js';
+import { hashPassword } from '../src/utils/password.js';
+import { RoleName, PlanTypes, FacilityTypes, MembershipTypes } from '../src/generated/prisma/enums.js';
+
+
+const passwordHash = await hashPassword(env.ADMIN_SECRET);
 
 async function main(){
-    // Seed the roles
-    // await prisma.role.createMany({
-    //     data: [
-    //         {name: "ADMIN"},
-    //         {name: "COACH"},
-    //         {name: "MEMBER"},
-    //         {name: "STAFF"}
-    //     ]
-    // });
-    // console.log("Seeded Roles!")
-    
-    //Seed the permissions
-    await prisma.permission.createMany({
-        data: [
-            { action: "users:read" },
-            { action: "users:create" },
-            { action: "users:update" },
-            { action: "users:delete" },
-
-            { action: "plans:read" },
-            { action: "plans:create" },
-            { action: "plans:update" },
-            { action: "plans:delete" },
-
-            { action: "subscriptions:read" },
-            { action: "subscriptions:create" },
-            { action: "subscriptions:update" },
-            { action: "subscriptions:cancel" },
-
-            { action: "payments:read" },
-            { action: "payments:create" },
-
-            { action: "facilities:read" },
-            { action: "facilities:update" },
-
-            { action: "attendance:read" },
-            { action: "attendance:manage" }
-        ]
-    });
-    console.log("Seeded Permissions!");
-
-    //Seed the rolePermissions, but first seed the roles and permissions
-    for (const [role, permissions] of Object.entries(rolePermissions)) {
-        for (const permission of permissions) {
-            await prisma.rolePermission.create({
-                data: {
-                    role: {
-                        connect: { name: role as RoleName}
-                    },
-                    permission: {
-                        connect: { action: permission}
-                    }
-                }
-            });
-        }
-    };
-    console.log("Seeded rolePermissions!");
-
-    //Seed the plans
-    await prisma.plan.createMany({
-        data: [
-            {name: "BASIC",  price: 2000},
-            {name: "PREMIUM", price: 4000}
-        ]
-    });
-    console.log("Seeded Plans!")
-
-    //Seed the facilities
-    await prisma.facility.createMany({
-        data: [
-            {name: "GYM"},
-            {name: "FOOTBALL"},
-            {name: "SWIMMING_POOL"},
-            {name: "SAUNA"},
-            {name: "SHOWER"}
-        ]
-    });
-    console.log("Seeded Facilities!");
-
-    // Seed the planFacilities, but first seed the plan and facilities
-    for(const [plan, facilities] of Object.entries(planFacilities)){
-        for(const facility of facilities){
-            await prisma.planFacility.create({
-                data: {
-                    plan: {
-                        connect: {name: plan as PlanTypes}
-                    },
-                    facility: {
-                        connect: {name: facility as FacilityTypes}
-                    }
-                } 
-            });
-        }
-    }
-    console.log("Seeded planFacilities!");
-
-    //Seed an ADMIN user, but first seed the role
-    await prisma.user.create({
-            data: {
-                name: "Eyosiyas",
-                email: "eyosik55@gmail.com",
-                role: {
-                    connect: {
-                        name: "ADMIN"
-                    }
-                }
-            }
+    await prisma.$transaction(async (tx) => {
+        // Seed the roles
+        await tx.role.createMany({
+            data: [
+                {name: "ADMIN"},
+                {name: "COACH"},
+                {name: "MEMBER"},
+                {name: "STAFF"}
+            ]
         });
-    console.log("Seeded an ADMIN user!");
-}
+        console.log("Seeded Roles!")
+        
+        //Seed the permissions
+        await tx.permission.createMany({
+            data: [
+                { action : "absolute"},
 
-main();
+                { action: "users:read:any" },
+                { action: "users:update:any" },
+                { action: "users:delete:any" },
+                { action: "users:logoutall:any"},
+    
+                { action: "users:read:own"},
+                { action: "users:update:own"},
+                { action: "users:delete:own"},
+    
+                { action: "plans:read:any" },
+                { action: "plans:create:any" },
+                { action: "plans:update:any" },
+                { action: "plans:delete:any" },
+    
+                { action: "subscriptions:read:any" },
+                { action: "subscriptions:create:any" },
+                { action: "subscriptions:update:any" },
+                { action: "subscriptions:delete:any" },
+                { action: "subscriptions:cancel:any" },
+    
+                { action: "subscriptions:read:own" },
+                { action: "subscriptions:create:own" },
+                { action: "subscriptions:cancel:own" },
+    
+                { action: "payments:read:any" },
+                { action: "payments:create:any" },
+                { action: "payments:update:any" },
+                { action: "payments:delete:any" },
+    
+                { action: "payments:read:own" },
+                { action: "payments:update:own" },
+                { action: "payments:cancel:own" },
+    
+                { action: "facilities:read:any" },
+                { action: "facilities:create:any" },
+                { action: "facilities:update:any" },
+                { action: "facilities:delete:any" },
+    
+                { action: "session:read:any" },
+                { action: "session:create:any" },
+                { action: "session:update:any" },
+                { action: "session:delete:any" },
+    
+                { action: "session:read:own" },
+                { action: "session:create:own" },
+                { action: "session:update:own" },
+            ]
+        });
+        console.log("Seeded Permissions!");
+    
+        //Seed the rolePermissions, but first seed the roles and permissions
+        for (const [role, permissions] of Object.entries(rolePermissions)) {
+            for (const permission of permissions) {
+                await tx.rolePermission.create({
+                    data: {
+                        role: {
+                            connect: { name: role as RoleName}
+                        },
+                        permission: {
+                            connect: { action: permission}
+                        }
+                    }
+                });
+            }
+        };
+        console.log("Seeded rolePermissions!");
+    
+        //Seed the plans
+        await tx.plan.createMany({
+            data: [
+                {name: "BASIC"},
+                {name: "PREMIUM"}
+            ]
+        });
+        console.log("Seeded Plans!")
+    
+        //Seed the facilities
+        await tx.facility.createMany({
+            data: [
+                {name: "GYM"},
+                {name: "FOOTBALL"},
+                {name: "SWIMMING_POOL"},
+                {name: "SAUNA"},
+                {name: "SHOWER"}
+            ]
+        });
+        console.log("Seeded Facilities!");
+    
+        // Seed the planFacilities, but first seed the plan and facilities
+        for(const [plan, facilities] of Object.entries(planFacilities)){
+            for(const facility of facilities){
+                await tx.planFacility.create({
+                    data: {
+                        plan: {
+                            connect: {name: plan as PlanTypes}
+                        },
+                        facility: {
+                            connect: {name: facility as FacilityTypes}
+                        }
+                    } 
+                });
+            }
+        }
+        console.log("Seeded planFacilities!");
+        
+        //Seed the planPrice
+        for(const [plan, values] of Object.entries(planPrices)){
+            for(const value of values){
+                for(const [membership, price] of Object.entries(value)){
+                    await tx.planPrice.create({
+                        data: {
+                            plan: {
+                                connect: {name: plan as PlanTypes}
+                            },
+                            membership: membership as MembershipTypes,
+                            price: price
+                        } 
+                    })
+                };
+            };
+        };
+        console.log("Seeded planPrices!");
+    
+        //Seed an ADMIN user, but first seed the role
+        await tx.user.create({
+                data: {
+                    name: "Eyosiyas",
+                    email: "eyosik55@gmail.com",
+                    role: {
+                        connect: {
+                            name: "ADMIN"
+                        }
+                    },
+                    passwordHash: passwordHash
+                }
+            });
+        console.log("Seeded an ADMIN user!");
+    });
+};
+
+main()
+    .catch((error) => {
+        console.error("Seeding Failed", error.message);
+        process.exitCode = 1;
+    }).finally(async () => {
+        await prisma.$disconnect();
+    });
 
 const planFacilities = {
     BASIC: [
@@ -131,76 +188,101 @@ const planFacilities = {
 
 const rolePermissions = {
   ADMIN: [
-    "users:read",
-    "users:create",
-    "users:update",
-    "users:delete",
+    "absolute",
 
-    "plans:read",
-    "plans:create",
-    "plans:update",
-    "plans:delete",
+    "users:read:any",
+    "users:update:any",
+    "users:delete:any",
+    "users:logoutall:any",
 
-    "subscriptions:read",
-    "subscriptions:create",
-    "subscriptions:update",
-    "subscriptions:cancel",
+    "plans:read:any",
+    "plans:create:any",
+    "plans:update:any",
+    "plans:delete:any",
 
-    "payments:read",
-    "payments:create",
+    "subscriptions:read:any",
+    "subscriptions:create:any",
+    "subscriptions:update:any",
+    "subscriptions:delete:any",
 
-    "facilities:read",
-    "facilities:update",
+    "payments:read:any",
+    "payments:create:any",
+    "payments:update:any",
+    "payments:delete:any",
+    
+    "facilities:read:any",
+    "facilities:create:any",
+    "facilities:update:any",
+    "facilities:delete:any",
 
-    "attendance:read",
-    "attendance:manage",
+    "session:read:any",
+    "session:create:any",
+    "session:update:any",
+    "session:delete:any",
   ],
 
   STAFF: [
-    "users:read",
-    "users:update",
+    "users:read:any",
+    "users:update:any",
 
-    "plans:read",
+    "plans:read:any",
 
-    "subscriptions:read",
-    "subscriptions:create",
-    "subscriptions:update",
-    "subscriptions:cancel",
+    "subscriptions:read:any",
+    "subscriptions:create:any",
+    "subscriptions:update:any",
 
-    "payments:read",
-    "payments:create",
+    "payments:read:any",
+    "payments:update:any",
 
-    "facilities:read",
+    "facilities:read:any",
 
-    "attendance:read",
-    "attendance:manage",
+    "session:read:any",
+    "session:create:any",
+    "session:update:any",
   ],
 
   COACH: [
-    "users:read",
+    "users:read:any",
 
-    "plans:read",
+    "plans:read:any",
 
-    "subscriptions:read",
+    "subscriptions:read:any",
 
-    "facilities:read",
+    "facilities:read:any",
 
-    "attendance:read",
-    "attendance:manage",
+    "session:read:any",
   ],
 
   MEMBER: [
-    "users:read",
+    "users:read:own",
+    "users:update:own",
+    "users:delete:own",
 
-    "plans:read",
+    "subscriptions:read:own",
+    "subscriptions:create:own",
+    "subscriptions:cancel:own",
 
-    "subscriptions:read",
-    "subscriptions:create",
+    "payments:read:own",
+    "payments:update:own",
+    "payments:cancel:own",
 
-    "payments:read",
-
-    "facilities:read",
-
-    "attendance:read",
+    "session:read:own",
+    "session:create:own",
+    "session:update:own",
   ],
+};
+
+const planPrices = {
+    BASIC: [
+        {MONTHLY:"1000"},
+        {QUARTERLY:"2700"},
+        {HALF_YEARLY:"4800"},
+        {YEARLY:"6000"}
+    ],
+    PREMIUM: [
+        {MONTHLY:"2000"},
+        {QUARTERLY:"5400"},
+        {HALF_YEARLY:"9600"},
+        {YEARLY:"12000"}
+    ]
 };
