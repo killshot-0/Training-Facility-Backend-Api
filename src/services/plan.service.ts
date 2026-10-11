@@ -48,18 +48,22 @@ export async function findPrice(id?: string, query?: PlanQueryInput){
     });
 };
 
-export function patchPlanPrice(id: string, body: PriceChangeInput){
-    return prisma.planPrice.update({
-        where: {
-            planId_membership:{
-                planId: id,
-                membership: body.membership
+export async function patchPlanPrice(id: string, body: PriceChangeInput){
+    try {
+        return await prisma.planPrice.update({
+            where: {
+                planId_membership:{
+                    planId: id,
+                    membership: body.membership
+                }
+            },
+            data: {
+                price: body.price
             }
-        },
-        data: {
-            price: body.price
-        }
-    });
+        });
+    } catch (error) {
+        return null
+    }
 };
 
 export function getFacilities(){

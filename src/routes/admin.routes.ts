@@ -38,8 +38,8 @@ adminRouter.delete("/facilities/:id", permission("absolute"), validate(idSchema)
 adminRouter.get("/role/users", permission("absolute"), validate(getByRoleSchema), asyncHandler(controllers.usersByRole));      //get the users that have a specific role
 
 adminRouter.get("/subscriptions/", permission("absolute"), validate(subscriptionSchema.subscriptionQuery1Schema), asyncHandler(controllers.subscriptionControllers.getSubscription));    //get the subscription with query options
-adminRouter.get("/subscriptions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.subscriptionControllers.getSubscription));   //get a specific subscription
 adminRouter.get("/subscriptions/users", permission("absolute"), asyncHandler(controllers.subscriptionControllers.UsersWithSubscriptions));  //get all the user with subscriptions along with the subscriptions
+adminRouter.get("/subscriptions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.subscriptionControllers.getSubscription));   //get a specific subscription
 adminRouter.post("/subscriptions/", permission("absolute"), validate(subscriptionSchema.subscriptionCreate1Schema), asyncHandler(controllers.subscriptionControllers.createSubscription))
 adminRouter.patch("/subscriptions/:id", permission("absolute"), validate(subscriptionSchema.subscriptionChangeSchema), asyncHandler(controllers.subscriptionControllers.changeSubscriptionStatus));    //change a subscription information
 adminRouter.delete("/subscriptions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.subscriptionControllers.deleteSubscription));   //delete a subscription
@@ -57,7 +57,7 @@ adminRouter.patch("/sessions/:id", permission("absolute"), validate(idSchema), a
 adminRouter.delete("/sessions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.sessionControllers.deleteSession));    //delete a session
 
 
-adminRouter.get("/analytics");  //get analytical information 
+// adminRouter.get("/analytics");  //get analytical information 
 
 adminRouter.post("/logout-all", permission("absolute"), asyncHandler(controllers.authControllers.logoutAll));    //log out users
 

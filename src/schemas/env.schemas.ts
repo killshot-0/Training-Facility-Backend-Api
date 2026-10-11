@@ -7,6 +7,7 @@ export const envSchema = z.object({
     .default("development"),
     PORT: z.coerce.number().int().positive().default(5000),
     DATABASE_URL: z.string().min(1),
+    DATABASE_URL_TEST: z.string().min(1),
     FRONTEND_ORIGIN: z.url(),
     ADMIN_SECRET: z.string().min(8),
     JWT_ACCESS_SECRET: z.string().min(32),

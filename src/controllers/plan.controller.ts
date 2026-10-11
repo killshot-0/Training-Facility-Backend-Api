@@ -35,7 +35,7 @@ export async function changePlanPrice(req: Request<{id: string}>, res: Response)
         return res.status(404).json({message: "Unable to Change Price"});
     }
 
-    return res.status(200).json({messaeg: "Prices Changed!", price});
+    return res.status(200).json({message: "Prices Changed!", price});
 }; 
 
 export async function getFacilities(req: Request, res: Response){

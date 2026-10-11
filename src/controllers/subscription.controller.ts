@@ -4,10 +4,10 @@ import * as EmailServices from '../services/email.service.js';
 
 export async function getSubscription(req: Request<{id: string}>, res: Response){
     const {id} = req.params;
-    const query = req.body;
+    const query = req.query;
 
     const subscription = await services.findSubscription(id, query);
-    if(!subscription){
+    if(!subscription || (Array.isArray(subscription) && subscription.length === 0)){
         return res.status(404).json({message: "Subscription not Foudn!"});
     }
 

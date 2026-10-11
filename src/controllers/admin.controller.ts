@@ -90,7 +90,7 @@ export async function usersByRole(req: Request, res: Response){
     const body = req.body;
 
     const users = await services.findUsersByRole(body);
-    if(!users){
+    if(users.length === 0){
         return res.status(404).json({message: "Unable to find users by this role!"});
     }
 

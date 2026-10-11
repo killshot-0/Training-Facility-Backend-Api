@@ -74,8 +74,12 @@ export async function patchPayment(id: string, body: PaymentChangeInput){
     });
 };
 
-export function removePayment(id:string){
-    return prisma.payment.delete({
-        where: {id}
-    });
+export async function removePayment(id:string){
+    try {
+        return await prisma.payment.delete({
+            where: {id}
+        });
+    } catch (error) {
+        return null
+    }
 };

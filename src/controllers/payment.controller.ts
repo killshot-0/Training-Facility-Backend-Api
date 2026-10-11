@@ -6,7 +6,7 @@ export async function getPayments(req: Request<{id: string}>, res: Response){
     const query = req.query;
 
     const payment = await services.findPayment(id, query);
-    if(!payment){
+    if(!payment || (Array.isArray(payment) && payment.length === 0)){
         return res.status(404).json({message: "Unable to find Payment!"});
     }
     return res.status(200).json({message: "Payment Found!", payment});

@@ -43,10 +43,10 @@ export async function loging(req: Request, res: Response){
     //check if user exists
     const user = await services.checkUser(email);
     if(!user){
-        return res.status(400).json({message: "Invalid Email or Password!"})
+        return res.status(401).json({message: "Invalid Email or Password!"})
     }
     if(!user.passwordHash){
-        return res.status(404).json({message: "Invalid Email or Password!"})
+        return res.status(401).json({message: "Invalid Email or Password!"})      //for users that registered through a 3rd party and don't have a strored passwordHash 
     };
     const isValid = user ?  await verifyPassword(password, user.passwordHash) : false;
 

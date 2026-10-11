@@ -135,7 +135,7 @@ model PlanPrice {
   membership MembershipTypes
   price      Decimal
 
-  plan Plan @relation(fields: [planId], references: [id])
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@unique([planId, membership])
   @@map("plan_prices")
@@ -155,8 +155,8 @@ model PlanFacility {
   planId     String @map("plan_id")
   facilityId String @map("facility_id")
 
-  plan     Plan     @relation(fields: [planId], references: [id])
-  facility Facility @relation(fields: [facilityId], references: [id])
+  plan     Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   @@id([facilityId, planId])
   @@map("plan_facilities")
@@ -171,8 +171,8 @@ model Subscription {
   endDate    DateTime           @map("end_date")
   status     SubscriptionStatus @default(ACTIVE)
 
-  user     User      @relation(fields: [userId], references: [id])
-  plan     Plan      @relation(fields: [planId], references: [id])
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
   payments Payment[]
 
   @@index([userId])
@@ -190,8 +190,8 @@ model Payment {
   status         PaymentStatus @default(PENDING)
   createdAt      DateTime      @default(now()) @map("created_at")
 
-  user         User         @relation(fields: [userId], references: [id])
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("payments")
@@ -206,7 +206,7 @@ model AuthSession {
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -220,8 +220,8 @@ model FacilitySession {
   checkIn    DateTime  @map("check_in")
   checkOut   DateTime? @map("check_out")
 
-  user     User     @relation(fields: [userId], references: [id])
-  facility Facility @relation(fields: [facilityId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([facilityId])

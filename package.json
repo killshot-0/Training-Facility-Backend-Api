@@ -8,8 +8,10 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "seed": "tsx prisma/seed-run.ts",
+    "test": "cross-env NODE_ENV=test vitest run",
+    "test:watch": "cross-env NODE_ENV=test vitest",
+    "migrate:test": "cross-env NODE_ENV=test prisma migrate deploy --config prisma7.config.ts"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +35,8 @@
     "openid-client": "^6.8.8",
     "pg": "^8.23.1",
     "resend": "^6.32.1",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.3",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -42,9 +46,11 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.3.0",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.5",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "cross-env": "^10.1.0",
     "prisma": "^7.10.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"

@@ -72,7 +72,8 @@ export async function callback(req: Request, res: Response){
             id: result.id,
             createdAt: result.createdAt,
             email: result.email,
-            role: result.role
+            role: result.role,
+            name: result.name
         }
 
         const {accessToken, refreshCredential} = await authservices.giveToken(tokenUser);

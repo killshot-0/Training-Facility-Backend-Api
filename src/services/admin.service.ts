@@ -10,51 +10,81 @@ export function findUser(id?: string){
     return prisma.user.findMany();
 };
 
-export function patchRole(id: string, body: RoleChangeInput){
-    return prisma.user.update({
-        where: {id},
-        data: {
-            role: {
-                connect: {
-                    name: body.role
+export async function patchRole(id: string, body: RoleChangeInput){
+    try {
+        return await prisma.user.update({
+            where: {id},
+            data: {
+                role: {
+                    connect: {
+                        name: body.role
+                    }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        return null
+    }
 };
 
-export function removeUser(id: string){
+export async function removeUser(id: string) {
+    const user = await prisma.user.findUnique({
+        where: { id },
+        select: { role: { select: { name: true } } }
+    });
+
+    if (!user || user.role.name === "ADMIN") {
+        return null;
+    }
+
     return prisma.user.delete({
-        where: {id}
+        where: { id }
     });
 };
 
-export function postPlan(body: PlanCreateInput){
-    return prisma.plan.create({
-        data: {
-            name: body.plan
-        }
-    });
+export async function postPlan(body: PlanCreateInput){
+    try {
+        return await prisma.plan.create({
+            data: {
+                name: body.plan
+            }
+        });
+        
+    } catch (error) {
+        return null
+    }
 };
 
-export function removePlan(id: string){
-    return prisma.plan.delete({
-        where: {id}
-    });
+export async function removePlan(id: string){
+    try {
+        return await prisma.plan.delete({
+            where: {id}
+        });
+    } catch (error) {
+        return null
+    }
 };
 
-export function postFacility(body: FacilityCreateInput){
-    return prisma.facility.create({
-        data: {
-            name: body.facility
-        }
-    });
+export async function postFacility(body: FacilityCreateInput){
+    try {
+        return await prisma.facility.create({
+            data: {
+                name: body.facility
+            }
+        });
+    } catch (error) {
+        return null
+    }
 };
 
-export function removeFacility(id: string){
-    return prisma.facility.delete({
-        where: {id}
-    });
+export async function removeFacility(id: string){
+    try {
+        return await prisma.facility.delete({
+            where: {id}
+        });
+    } catch (error) {
+        return null
+    }
 };
 
 export function findUsersByRole(body: GetByRoleInput){

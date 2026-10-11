@@ -4,9 +4,10 @@ import { hashPassword } from '../src/utils/password.js';
 import { RoleName, PlanTypes, FacilityTypes, MembershipTypes } from '../src/generated/prisma/enums.js';
 
 
-const passwordHash = await hashPassword(env.ADMIN_SECRET);
 
-async function main(){
+export async function seed(){
+    const passwordHash = await hashPassword(env.ADMIN_SECRET);
+
     await prisma.$transaction(async (tx) => {
         // Seed the roles
         await tx.role.createMany({
@@ -164,13 +165,6 @@ async function main(){
     });
 };
 
-main()
-    .catch((error) => {
-        console.error("Seeding Failed", error.message);
-        process.exitCode = 1;
-    }).finally(async () => {
-        await prisma.$disconnect();
-    });
 
 const planFacilities = {
     BASIC: [
