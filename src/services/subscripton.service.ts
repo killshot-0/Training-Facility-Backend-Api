@@ -106,23 +106,20 @@ export async function postSubscription(body: SubscriptionCreateInput1){
 };
 
 export async function patchSubscriptionStatus(id: string, body: SubscriptionChangeInput){
-    try {
-        const getSubscription = await prisma.subscription.findUnique({
-            where: {id}
-        }); 
-        if(getSubscription!.status === body.status || getSubscription!.status === "EXPIRED"){
-            return null;
-        }
-    
-        return await prisma.subscription.update({
-            where: {id},
-            data: {
-                status: body.status
-            }
-        });
-    } catch (error) {
-        return null
+    const getSubscription = await prisma.subscription.findUnique({
+        where: {id}
+    }); 
+    if(!getSubscription || getSubscription!.status === body.status || getSubscription!.status === "EXPIRED"){
+        return null;
     }
+
+    return await prisma.subscription.update({
+        where: {id},
+        data: {
+            status: body.status
+        }
+    });
+
 };
 
 export async function removeSubscription(id: string){

@@ -132,7 +132,7 @@ export async function findorCreateAccount(input: Account){
     });
 
     if(user){
-        const newAccount = prisma.account.create({
+        const newAccount = await prisma.account.create({
             data: {
                 userId: user.id,
                 provider: input.provider,

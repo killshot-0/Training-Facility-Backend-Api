@@ -6,7 +6,7 @@ export async function getSessions(req: Request<{id: string}>, res: Response){
     const query = req.query;
 
     const session = await services.findSessions(id, query);
-    if(!session){
+    if(!session || (Array.isArray(session) && session.length === 0)){
         return res.status(404).json({message: "Unable to find Sessions"});
     }
 

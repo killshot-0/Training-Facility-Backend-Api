@@ -16,7 +16,7 @@ export async function getSubscription(req: Request<{id: string}>, res: Response)
 
 export async function UsersWithSubscriptions(req: Request, res: Response){
     const users = await services.findUsersWithSubscriptions();
-    if(!users){
+    if(!users || (Array.isArray(users) && users.length === 0)){
         return res.status(404).json({message: "No Users with Subscriptions found!"})
     }
     return res.status(200).json({message: "Successfully found Users with Subscription", users});

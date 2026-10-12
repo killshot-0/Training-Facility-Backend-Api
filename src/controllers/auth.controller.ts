@@ -31,7 +31,7 @@ export async function registering(req: Request, res: Response){
     //Send a welcome email to the registered user
     EmailServices.sendWelcomeEmail(user.email, user.name)
         .catch((err) => {
-            console.error(`[Background Email Error]: Failed to welcome ${req.user!.email}`, err);
+            console.error(`[Background Email Error]: Failed to welcome ${user.email}`, err);
     });
 };
 

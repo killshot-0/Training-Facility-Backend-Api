@@ -17,8 +17,8 @@ const subscriptionRouter = Router();
 subscriptionRouter.use(authenticate);
 
 subscriptionRouter.get("/", permission("subscriptions:read:any"), validate(subscriptionQuery1Schema), asyncHandler(controllers.getSubscription));   //get all subscriptions with query options
-subscriptionRouter.get("/:id", permission("subscriptions:read:any"), validate(idSchema), asyncHandler(controllers.getSubscription));   //get a specific subscriptions
 subscriptionRouter.get("/users", permission("subscriptions:read:any"), asyncHandler(controllers.UsersWithSubscriptions));   //get users with subscriptions with a certain status
+subscriptionRouter.get("/:id", permission("subscriptions:read:any"), validate(idSchema), asyncHandler(controllers.getSubscription));   //get a specific subscriptions
 
 subscriptionRouter.post("/", permission("subscriptions:create:any"), validate(subscriptionCreate1Schema), asyncHandler(controllers.createSubscription));   //create a subscription for a user
 

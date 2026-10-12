@@ -15,8 +15,8 @@ export const paymentFileSchema = z.object({
         id: z.uuid(),
     }),
     file: z.object({
-        siz: z.number().max(MAX_FILE_SIZE, "File size must be less than 5 MBs!"),
-        mime: z.enum(ALLOWED_IMAGE_TYPES)
+        size: z.number().max(MAX_FILE_SIZE, "File size must be less than 5 MBs!"),
+        mimetype: z.enum(ALLOWED_IMAGE_TYPES)
     })
 });
 

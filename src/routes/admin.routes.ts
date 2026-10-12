@@ -56,9 +56,6 @@ adminRouter.post("/sessions/", permission("absolute"), validate(sessionSchema.se
 adminRouter.patch("/sessions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.sessionControllers.checkoutSession));  //checkout a session
 adminRouter.delete("/sessions/:id", permission("absolute"), validate(idSchema), asyncHandler(controllers.sessionControllers.deleteSession));    //delete a session
 
-
-// adminRouter.get("/analytics");  //get analytical information 
-
 adminRouter.post("/logout-all", permission("absolute"), asyncHandler(controllers.authControllers.logoutAll));    //log out users
 
 export default adminRouter;

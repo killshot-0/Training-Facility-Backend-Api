@@ -6,6 +6,9 @@ import { cleanDatabase, seed } from "./helpers/factory.js";
 import { env } from '../src/config/env.js';
 import { register, login } from './auth.test.js';
 import { supabase } from '../src/lib/storage.js';
+import * as sessionServices from "../src/services/auth.service.js";
+import { createSubscriptionFixture, createSessionFixture } from './helpers/factory.js';
+
 
 
 describe("Admin Tests", () => {
@@ -53,54 +56,6 @@ describe("Admin Tests", () => {
         return member;
     }
 
-    async function createSubscriptionFixture(
-        memberId: string,
-        data?: {
-            membership?: "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";
-            status?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "SUSPENDED";
-            plan?: "BASIC" | "PREMIUM";
-        }
-    ) {
-        const membership = data?.membership ?? "MONTHLY";
-        const planName = data?.plan ?? "BASIC";
-
-        return prisma.$transaction(async (tx) => {
-            const plan = await tx.plan.findUniqueOrThrow({
-                where: { name: planName },
-            });
-
-            const planPrice = await tx.planPrice.findUniqueOrThrow({
-                where: {
-                    planId_membership: {
-                        planId: plan.id,
-                        membership,
-                    },
-                },
-            });
-
-            const subscription = await tx.subscription.create({
-                data: {
-                    userId: memberId,
-                    planId: plan.id,
-                    membership,
-                    status: data?.status ?? "ACTIVE",
-                    startDate: new Date(),
-                    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                },
-            });
-
-            const payment = await tx.payment.create({
-                data: {
-                    userId: memberId,
-                    subscriptionId: subscription.id,
-                    amount: planPrice.price,
-                    status: "PENDING",
-                },
-            });
-
-            return { subscription, payment };
-        });
-    }
 
     describe("GET /api/admin/users", () => {
         it("should reject an unauthenticated admin", async () => {
@@ -1900,4 +1855,615 @@ describe("Admin Tests", () => {
         });
     });
 
+    describe("GET /api/admin/sessions", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app).get("/api/admin/sessions");
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const user = await userRequest();
+
+            const res = await user.get("/api/admin/sessions");
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully return sessions", async () => {
+            const member = await createMember();
+            await createSessionFixture(member.id);
+
+            const admin = await adminRequest();
+
+            const res = await admin.get("/api/admin/sessions");
+
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body.session)).toBe(true);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should filter sessions by userId", async () => {
+            const member1 = await createMember();
+
+            await createSessionFixture(member1.id);
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                `/api/admin/sessions?userId=${member1.id}`
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toBeDefined();
+            expect(res.body.session[0].userId).toBe(member1.id);
+        });
+
+        it("should filter sessions by facility", async () => {
+            const member = await createMember();
+
+            await createSessionFixture(member.id, { facility: "GYM" });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get("/api/admin/sessions?facility=GYM");
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should filter sessions by checkInAfter", async () => {
+            const member = await createMember();
+
+            await createSessionFixture(member.id, {
+                checkIn: new Date("2026-01-01T10:00:00Z"),
+            });
+
+            await createSessionFixture(member.id, {
+                checkIn: new Date("2026-02-01T10:00:00Z"),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?checkInAfter=2026-01-15T00:00:00Z"
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should filter sessions by checkInBefore", async () => {
+            const member = await createMember();
+
+            await createSessionFixture(member.id, {
+                checkIn: new Date("2026-01-01T10:00:00Z"),
+            });
+
+            await createSessionFixture(member.id, {
+                checkIn: new Date("2026-02-01T10:00:00Z"),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?checkInBefore=2026-01-15T00:00:00Z"
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should filter sessions by checkOutAfter", async () => {
+            const member = await createMember();
+
+            await createSessionFixture(member.id, {
+                checkOut: new Date("2026-01-10T10:00:00Z"),
+            });
+
+            await createSessionFixture(member.id, {
+                checkOut: new Date("2026-02-10T10:00:00Z"),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?checkOutAfter=2026-01-20T00:00:00Z"
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should filter sessions by checkOutBefore", async () => {
+            const member = await createMember();
+
+            await createSessionFixture(member.id, {
+                checkOut: new Date("2026-01-10T10:00:00Z"),
+            });
+
+            await createSessionFixture(member.id, {
+                checkOut: new Date("2026-02-10T10:00:00Z"),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?checkOutBefore=2026-01-20T00:00:00Z"
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toHaveLength(1);
+        });
+
+        it("should combine multiple query filters", async () => {
+            const member1 = await createMember();
+            const member2 = await createMember();
+
+            await createSessionFixture(member1.id, {
+                facility: "GYM",
+                checkIn: new Date("2026-01-10T10:00:00Z"),
+            });
+
+            await createSessionFixture(member1.id, {
+                facility: "FOOTBALL",
+                checkIn: new Date("2026-01-10T10:00:00Z"),
+            });
+
+            await createSessionFixture(member2.id, {
+                facility: "GYM",
+                checkIn: new Date("2026-01-10T10:00:00Z"),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                `/api/admin/sessions?userId=${member1.id}&facility=GYM&checkInAfter=2026-01-01T00:00:00Z`
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session).toBeDefined();
+            expect(res.body.session[0].userId).toBe(member1.id);
+        });
+
+        it("should reject an invalid userId", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?userId=invalid-id"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should reject an invalid facility", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?facility=INVALID"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should reject invalid date", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions?checkInAfter=invalid-date"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should return 404 when no sessions are found", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get("/api/admin/sessions");
+
+            expect(res.status).toBe(404);
+        });
+    });
+
+    describe("GET /api/admin/sessions/:id", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app).get(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const member = await createMember();
+            const session = await createSessionFixture(member.id);
+            const user = await userRequest();
+
+            const res = await user.get(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully return a session", async () => {
+            const member = await createMember();
+            const session = await createSessionFixture(member.id);
+
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session.id).toBe(session.id);
+        });
+
+        it("should reject an invalid session ID", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                "/api/admin/sessions/invalid-id"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should return 404 when the session does not exist", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.get(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(404);
+        });
+    });
+
+    describe("POST /api/admin/sessions", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app)
+                .post("/api/admin/sessions")
+                .send({
+                    userId: crypto.randomUUID(),
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const member = await createMember();
+            const user = await userRequest();
+
+            const res = await user
+                .post("/api/admin/sessions")
+                .send({
+                    userId: member.id,
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully create a session", async () => {
+            const member = await createMember();
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    userId: member.id,
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(201);
+            expect(res.body.session.userId).toBe(member.id);
+            expect(res.body.session.checkIn).toBeDefined();
+            expect(res.body.session.checkOut).toBeNull();
+
+            const savedSession = await prisma.facilitySession.findUnique({
+                where: { id: res.body.session.id },
+            });
+
+            expect(savedSession).not.toBeNull();
+        });
+
+        it("should reject an invalid userId", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    userId: "invalid-id",
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should reject an invalid facility", async () => {
+            const member = await createMember();
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    userId: member.id,
+                    facility: "INVALID",
+                });
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should reject a request without userId", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should reject a request without facility", async () => {
+            const member = await createMember();
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    userId: member.id,
+                });
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should return a 500 if it couldn't create a session", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin
+                .post("/api/admin/sessions")
+                .send({
+                    userId: crypto.randomUUID(),
+                    facility: "GYM",
+                });
+
+            expect(res.status).toBe(500);
+        });
+    });
+
+    describe("PATCH /api/admin/sessions/:id", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app).patch(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const member = await createMember();
+            const session = await createSessionFixture(member.id);
+            const user = await userRequest();
+
+            const res = await user.patch(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully checkout a session", async () => {
+            const member = await createMember();
+            const session = await createSessionFixture(member.id);
+
+            const admin = await adminRequest();
+
+            const res = await admin.patch(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(200);
+            expect(res.body.session.id).toBe(session.id);
+            expect(res.body.session.checkOut).not.toBeNull();
+
+            const updatedSession = await prisma.facilitySession.findUnique({
+                where: { id: session.id },
+            });
+
+            expect(updatedSession?.checkOut).not.toBeNull();
+        });
+
+        it("should reject an invalid session ID", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.patch(
+                "/api/admin/sessions/invalid-id"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should return 404 when the session does not exist", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.patch(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(404);
+        });
+
+        it("should return 404 when the session is already checked out", async () => {
+            const member = await createMember();
+
+            const session = await createSessionFixture(member.id, {
+                checkOut: new Date(),
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.patch(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(404);
+        });
+    });
+
+    describe("DELETE /api/admin/sessions/:id", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app).delete(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const user = await userRequest();
+
+            const res = await user.delete(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully delete a session", async () => {
+            const member = await createMember();
+            const session = await createSessionFixture(member.id);
+
+            const admin = await adminRequest();
+
+            const res = await admin.delete(
+                `/api/admin/sessions/${session.id}`
+            );
+
+            expect(res.status).toBe(200);
+
+            const deletedSession = await prisma.facilitySession.findUnique({
+                where: { id: session.id },
+            });
+
+            expect(deletedSession).toBeNull();
+        });
+
+        it("should reject an invalid session ID", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.delete(
+                "/api/admin/sessions/invalid-id"
+            );
+
+            expect(res.status).toBe(400);
+        });
+
+        it("should return 500 when the session doesn't exist", async () => {
+            const admin = await adminRequest();
+
+            const res = await admin.delete(
+                `/api/admin/sessions/${crypto.randomUUID()}`
+            );
+
+            // Depends on your Prisma error middleware.
+            expect(res.status).toBe(500);
+        });
+    });
+
+    describe("POST /api/admin/logout-all", () => {
+        it("should reject unauthenticated requests", async () => {
+            const res = await request(app).post("/api/admin/logout-all");
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject members without permission", async () => {
+            const user = await userRequest();
+
+            const res = await user.post("/api/admin/logout-all");
+
+            expect(res.status).toBe(403);
+        });
+
+        it("should successfully revoke all active sessions", async () => {
+            const member1 = await createMember();
+            const member2 = await createMember();
+
+            const session1 = await prisma.authSession.create({
+                data: {
+                    userId: member1.id,
+                    currentRefreshDigest: "digest-1",
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+                },
+            });
+
+            const session2 = await prisma.authSession.create({
+                data: {
+                    userId: member2.id,
+                    currentRefreshDigest: "digest-2",
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+                },
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.post("/api/admin/logout-all");
+
+            expect(res.status).toBe(200);
+            expect(res.body.message).toBe("Logged Out All Devices!");
+
+            const sessions = await prisma.authSession.findMany({
+                where: {
+                    id: { in: [session1.id, session2.id] },
+                },
+            });
+
+            expect(sessions).toHaveLength(2);
+            expect(sessions.every(session => session.revokedAt !== null)).toBe(true);
+        });
+
+        it("should preserve already revoked sessions", async () => {
+            const member = await createMember();
+
+            const revokedAt = new Date("2026-01-01T10:00:00Z");
+
+            const session = await prisma.authSession.create({
+                data: {
+                    userId: member.id,
+                    currentRefreshDigest: "revoked-digest",
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+                    revokedAt,
+                },
+            });
+
+            const admin = await adminRequest();
+
+            const res = await admin.post("/api/admin/logout-all");
+
+            expect(res.status).toBe(200);
+
+            const updatedSession = await prisma.authSession.findUnique({
+                where: { id: session.id },
+            });
+
+            expect(updatedSession?.revokedAt?.getTime()).toBe(revokedAt.getTime());
+        });
+
+        it("should return 500 when the service fails", async () => {
+            vi.spyOn(sessionServices, "logOutAll").mockRejectedValue(
+                new Error("Database error")
+            );
+
+            const admin = await adminRequest();
+
+            const res = await admin.post("/api/admin/logout-all");
+
+            expect(res.status).toBe(500);
+        });
+    });
 });

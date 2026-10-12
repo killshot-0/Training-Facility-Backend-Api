@@ -28,6 +28,9 @@ export function validate(schema: z.ZodType) {
     };
 
     if (parsed.body !== undefined) req.body = parsed.body;
+    if (parsed.query !== undefined) {
+      Object.assign(req.query, parsed.query);
+  }
     res.locals.validated = parsed;
 
     return next();

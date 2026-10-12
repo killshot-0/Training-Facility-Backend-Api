@@ -275,7 +275,7 @@ export async function addPayment(id: string, file: Express.Multer.File){
         }
     });
 
-    if(payment?.status === "COMPLETED" || payment?.status === "CANCELLED"){
+    if(!payment || payment.status === "COMPLETED" || payment.status === "CANCELLED"){
         return null
     }
     const fileExtension = path.extname(file.originalname).toLowerCase();
@@ -302,7 +302,6 @@ export async function addPayment(id: string, file: Express.Multer.File){
             paymentUrl: publicUrlData.publicUrl,
             paymentPath: data.path
         },
-        select: safeUserSelect
     });
 
     if(payment?.paymentPath){

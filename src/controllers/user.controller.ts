@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as services from '../services/user.service.js';
 import * as EmailServices from '../services/email.service.js';
+import { SessionQueryInput } from "../schemas/user.schemas.js";
 
 export async function getUsers(req: Request, res: Response){
     const id = req.user!.userId;
@@ -51,9 +52,7 @@ export async function deleteUser(req: Request, res: Response){
     const id = req.user!.userId;
 
     const user = await services.userDelete(id);
-    if(!user){
-        return res.status(400).json({message: "Couldn't Delete User!"})
-    }
+
     return res.status(200).json({message: "Deleted Successfully!"})
 };
 
@@ -63,7 +62,7 @@ export async function getSubscription(req: Request<{id:string}>, res: Response){
     const query = req.query;
 
     const subscription = await services.findSubscription(userId, id, query);
-    if(!subscription){
+    if(!subscription || (Array.isArray(subscription) && subscription.length === 0)){
         return res.status(404).json({message: "No Subscriptions Found!"});
     }
     return res.status(200).json({message: "Subscriptions:", subscription});
@@ -74,12 +73,7 @@ export async function createSubscription(req: Request, res: Response){
     const userId = req.user!.userId;
 
     const {subscription, payment} = await services.postSubscription(userId, body);
-    if(!subscription){
-        return res.status(404).json({message: "Unable to create Subscription!"})
-    }
-    if(!payment){
-        return res.status(404).json({message: "Unable to create Payment!"})
-    }
+
     res.status(201).json({message: "Successfully Created Subscription and Payment!", subscription, payment});
 
     EmailServices.sendSubscriptionConfirmation(req.user!.email, {
@@ -104,13 +98,13 @@ export async function changeSubscription(req: Request<{id: string}>, res: Respon
     return res.status(200).json({message: "Successfully Updated Status!", subscription});
 };
 
-export async function getPayment(req: Request<{id: string}>, res: Response){
+export async function getPayment(req: Request<{id?: string}>, res: Response){
     const {id} = req.params;
     const userId = req.user!.userId;
     const query = req.query;
 
     const payment = await services.findPayment(userId, id, query);
-    if(!payment){
+    if(!payment || (Array.isArray(payment) && payment.length === 0)){
         return res.status(404).json({message: "Unabele to Find Payment!"});
     }
 
@@ -143,10 +137,10 @@ export async function uploadPayment(req: Request<{id: string}>, res: Response){
 export async function getSessions(req: Request<{id: string}>, res: Response){
     const {id} = req.params;
     const userId = req.user!.userId;
-    const query = req.query;
+    const query = res.locals.validated?.query as SessionQueryInput | undefined;
 
     const session = await services.findSession(userId, id, query);
-    if(!session){
+    if(!session || (Array.isArray(session) && session.length === 0)){
         return res.status(404).json({message: "Session not Found!"});
     }
 
@@ -158,9 +152,7 @@ export async function createSession(req: Request, res: Response){
     const userId = req.user!.userId;
 
     const session = await services.postSession(userId, body);
-    if(!session){
-        return res.status(404).json({message: "Unable to create a session"});
-    }
+
     return res.status(201).json({message: "Session Created Successfully!", session});
 };
 
