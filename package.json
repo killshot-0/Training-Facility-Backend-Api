@@ -11,13 +11,16 @@
     "seed": "tsx prisma/seed-run.ts",
     "test": "cross-env NODE_ENV=test vitest run",
     "test:watch": "cross-env NODE_ENV=test vitest",
-    "migrate:test": "cross-env NODE_ENV=test prisma migrate deploy --config prisma7.config.ts"
+    "migrate:test": "cross-env NODE_ENV=test prisma migrate deploy --config prisma7.config.ts",
+    "docs:generate": "tsx src/docs/swagger-autogen.ts",
+    "dev:docs": "npm run docs:generate && npm run dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@google/genai": "^2.28.0",
     "@openrouter/sdk": "^1.4.25",
     "@prisma/adapter-pg": "^7.10.0",
@@ -36,6 +39,7 @@
     "pg": "^8.23.1",
     "resend": "^6.32.1",
     "supertest": "^7.3.1",
+    "swagger-ui-express": "^5.0.1",
     "vitest": "^5.0.3",
     "zod": "^4.6.5"
   },
@@ -50,8 +54,10 @@
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "@types/swagger-ui-express": "^4.1.8",
     "cross-env": "^10.1.0",
     "prisma": "^7.10.0",
+    "swagger-autogen": "^2.23.7",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

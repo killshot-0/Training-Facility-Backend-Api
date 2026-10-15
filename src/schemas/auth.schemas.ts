@@ -1,4 +1,4 @@
-import { email, z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 
 export const passwordSchema =z.string().trim().min(12, "minimum 12 characters").max(123, "maximum 128 character");
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import multer from "multer";
+import { Prisma } from "../generated/prisma/client.js";
 
 export async function errorHandler(err: any, req: Request, res: Response, next: NextFunction){
     if(err instanceof multer.MulterError){
@@ -29,6 +30,14 @@ export async function errorHandler(err: any, req: Request, res: Response, next: 
         return res.status(400).json(
             {
                 error: "Validation Error",details: err.errors
+            }
+        );
+    }
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError &&err.code === "P2002"){
+        return res.status(409).json(
+            {
+                message: "A plan with this unique value already exists!",
             }
         );
     }

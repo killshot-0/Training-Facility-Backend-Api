@@ -12,11 +12,16 @@ import subscriptionRouter from "./routes/subscription.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
 import sessionRouter from "./routes/session.routes.js";
 import aiRouter from "./routes/ai.routes.js";
+import swaggerUi from "swagger-ui-express";
+import { createRequire } from "node:module";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 
 
 const app = express();
+
+const require = createRequire(import.meta.url);
+const swaggerDocument = require("./docs/swagger-output.json");
 
 app.use(helmet());
 app.use(
@@ -35,6 +40,7 @@ app.get("/health", (req, res) => {
     res.status(200).json({status: "ok"});
 });
 
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/users", userRouter);

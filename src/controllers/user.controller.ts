@@ -20,7 +20,7 @@ export async function infoChange(req: Request, res: Response){
 
     const user = await services.infoPatch(id, data);
     if(!user){
-        return res.status(400).json({message: "Failed to Update!"});
+        return res.status(404).json({message: "Failed to Update!"});
     }
     return res.status(200).json({message: "Updated Successfully!", user});
 };

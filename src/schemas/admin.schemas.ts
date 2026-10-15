@@ -1,15 +1,11 @@
-import { z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 import { RoleName, PlanTypes, FacilityTypes } from '../generated/prisma/enums.js';
 import * as planSchema from '../schemas/plan.schemas.js';
 import * as subscriptionSchema from '../schemas/subscription.schemas.js';
 import * as paymentSchema from '../schemas/payment.schemas.js';
 import * as sessionSchema from '../schemas/session.schemas.js';
+import { idSchema } from './facility.schemas.js';
 
-export const idSchema = z.object({
-    params: z.object({
-        id: z.uuid(),
-    })
-});
 
 export const roleChangeSchema = z.object({
     params: idSchema.shape.params,
@@ -44,6 +40,7 @@ export type FacilityCreateInput = z.infer<typeof facilityCreateSchema>["body"];
 export type GetByRoleInput = z.infer<typeof getByRoleSchema>["body"];
 
 export {
+    idSchema,
     planSchema,
     subscriptionSchema,
     paymentSchema,

@@ -26,12 +26,7 @@ export async function createSubscription(req: Request, res: Response){
     const body = req.body;
 
     const {subscription, payment} = await services.postSubscription(body);
-    if(!subscription){
-        return res.status(404).json({message: "Unable to create Subscription!"})
-    }
-    if(!payment){
-        return res.status(404).json({message: "Unable to create Payment!"})
-    }
+
     res.status(201).json({message: "Successfully Created Subscription and Payment", subscription, payment});
     
     EmailServices.sendSubscriptionConfirmation(req.user!.email, {

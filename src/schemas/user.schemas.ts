@@ -1,11 +1,7 @@
-import { email, z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 import { MembershipTypes, SubscriptionStatus, PlanTypes, PaymentStatus, FacilityTypes} from '../generated/prisma/enums.js';
+import { idSchema } from './facility.schemas.js';
 
-export const idSchema = z.object({
-    params: z.object({
-        id: z.uuid(),
-    })
-});
 export const dataChangeSchema = z.object({
     body: z.object({
         name: z.string().trim().min(1).max(256).optional(),
@@ -61,3 +57,6 @@ export type SubscriptionCreateInput = z.infer<typeof subscriptionCreateSchema>["
 export type PaymentQueryInput = z.infer<typeof paymentQuerySchema>["query"];
 export type SessionQueryInput = z.infer<typeof sessionQuerySchema>["query"];
 export type SessionCreateInput = z.infer<typeof sessionCreateSchema>["body"];
+
+
+export {idSchema}

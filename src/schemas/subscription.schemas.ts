@@ -1,12 +1,7 @@
-import { z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 import { SubscriptionStatus } from '../generated/prisma/enums.js';
 import { subscriptionQuerySchema, subscriptionCreateSchema } from './user.schemas.js';
-
-export const idSchema = z.object({
-    params: z.object({
-        id: z.uuid(),
-    })
-});
+import { idSchema } from './facility.schemas.js';
 
 export const subscriptionQuery1Schema = subscriptionQuerySchema.extend({
     query: subscriptionQuerySchema.shape.query.extend({
@@ -30,3 +25,5 @@ export const subscriptionChangeSchema = z.object({
 export type SubscriptionQueryInput1 = z.infer<typeof subscriptionQuery1Schema>["query"];
 export type SubscriptionCreateInput1 = z.infer<typeof subscriptionCreate1Schema>["body"];
 export type SubscriptionChangeInput = z.infer<typeof subscriptionChangeSchema>["body"];
+
+export {idSchema}

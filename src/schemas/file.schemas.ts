@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;

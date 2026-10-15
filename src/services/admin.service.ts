@@ -43,16 +43,11 @@ export async function removeUser(id: string) {
 };
 
 export async function postPlan(body: PlanCreateInput){
-    try {
-        return await prisma.plan.create({
-            data: {
-                name: body.plan
-            }
-        });
-        
-    } catch (error) {
-        return null
-    }
+    return await prisma.plan.create({
+        data: {
+            name: body.plan
+        }
+    });
 };
 
 export async function removePlan(id: string){
@@ -66,15 +61,11 @@ export async function removePlan(id: string){
 };
 
 export async function postFacility(body: FacilityCreateInput){
-    try {
-        return await prisma.facility.create({
-            data: {
-                name: body.facility
-            }
-        });
-    } catch (error) {
-        return null
-    }
+    return await prisma.facility.create({
+        data: {
+            name: body.facility
+        }
+    });
 };
 
 export async function removeFacility(id: string){

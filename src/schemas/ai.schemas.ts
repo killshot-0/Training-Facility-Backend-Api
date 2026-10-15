@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../docs/zod-openapi.js";
 
 export const userRequestSchema = z.object({
     body: z.object({

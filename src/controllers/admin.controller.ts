@@ -39,18 +39,15 @@ export async function deleteUser(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unable to delete user!"});
     }
 
-    return res.status(200).json({message: "User deleted successfully!", user});
+    return res.status(200).json({message: "User deleted successfully!"});
 };
 
 export async function createPlan(req: Request, res: Response) {
     const body = req.body;
     
     const plan = await services.postPlan(body);
-    if(!plan){
-        return res.status(404).json({message: "Unable to create plan!"});
-    }
 
-    return res.status(200).json({message: "Plan successfully created!", plan});
+    return res.status(201).json({message: "Plan successfully created!", plan});
 };
 
 export async function deletePlan(req: Request<{id: string}>, res: Response){
@@ -68,11 +65,8 @@ export async function createFacility(req: Request, res: Response){
     const body = req.body;
 
     const facility = await services.postFacility(body);
-    if(!facility){
-        return res.status(404).json({message: "Unable to create facility!"});
-    }
 
-    return res.status(200).json({message: "Facility successfully created!", facility});
+    return res.status(201).json({message: "Facility successfully created!", facility});
 };
 
 export async function deleteFacility(req: Request<{id: string}>, res: Response){
@@ -83,7 +77,7 @@ export async function deleteFacility(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unable to delete facility!"});
     }
 
-    return res.status(200).json({message: "Facility successfully deleted!", facility});
+    return res.status(200).json({message: "Facility successfully deleted!"});
 };
 
 export async function usersByRole(req: Request, res: Response){

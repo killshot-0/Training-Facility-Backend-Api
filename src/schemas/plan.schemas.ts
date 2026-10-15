@@ -1,11 +1,6 @@
-import { z } from 'zod';
+import { z } from "../docs/zod-openapi.js";
 import { MembershipTypes } from '../generated/prisma/enums.js';
-
-export const idSchema = z.object({
-    params: z.object({
-        id: z.uuid(),
-    })
-});
+import { idSchema } from './facility.schemas.js';
 
 export const planQuerySchema = z.object({
     query: z.object({
@@ -24,3 +19,5 @@ export const priceChangeSchema = z.object({
 
 export type PlanQueryInput = z.infer<typeof planQuerySchema>["query"];
 export type PriceChangeInput = z.infer<typeof priceChangeSchema>["body"];
+
+export {idSchema}
