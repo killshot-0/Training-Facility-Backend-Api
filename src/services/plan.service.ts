@@ -4,7 +4,10 @@ import { PlanQueryInput, PriceChangeInput } from "../schemas/plan.schemas.js";
 export async function findPlan(id?:string, query?: PlanQueryInput){
     if(id){
         return prisma.plan.findUnique({
-            where:{id}
+            where:{id},
+            include: {
+                price: true
+            }
         });
     }
     return prisma.plan.findMany({

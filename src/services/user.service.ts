@@ -60,7 +60,7 @@ export async function addAvatar(userId: string, file: Express.Multer.File){
     });
 
     const fileExtension = path.extname(file.originalname).toLowerCase();
-    const uniqueFileName = `avatars/${crypto.randomUUID()}${fileExtension}`;
+    const uniqueFileName = `${crypto.randomUUID()}${fileExtension}`;
 
     const {data, error} = await supabase.storage
         .from(env.SUPABASE_STORAGE_BUCKET)
@@ -76,7 +76,7 @@ export async function addAvatar(userId: string, file: Express.Multer.File){
         .from(env.SUPABASE_STORAGE_BUCKET)
         .getPublicUrl(data.path);
 
-    const updatedUser = prisma.user.update({
+    const updatedUser = await prisma.user.update({
         where: {id: userId},
         data: {
             avatarUrl: publicUrlData.publicUrl,

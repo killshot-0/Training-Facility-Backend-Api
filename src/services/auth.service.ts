@@ -179,12 +179,16 @@ export async function loggingOut(parsed: Parsed){
         const candidate = digestRefreshSecret(parsed!.secret);
 
         if(equalDigest(candidate, session.currentRefreshDigest)){
-            await prisma.authSession.update({
+            return await prisma.authSession.update({
                 where: {id: parsed!.sessionId},
                 data: { revokedAt: new Date()}
             })
         }
     }
+    console.log({
+    sessionId: session?.id,
+    revokedAt: session?.revokedAt
+});
 };
 
 export function logOutAll(){

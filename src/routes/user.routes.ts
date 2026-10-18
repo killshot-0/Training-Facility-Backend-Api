@@ -33,8 +33,8 @@ userRouter.delete("/me", asyncHandler(controllers.deleteUser));
 
 userRouter.get("/subscriptions", validate(subscriptionQuerySchema), asyncHandler(controllers.getSubscription));  //get the current user's subscription with query options
 userRouter.get("/subscriptions/:id", validate(idSchema), checkSubscrptionOwnership, asyncHandler(controllers.getSubscription));  //get a specific subscription of the current user
-userRouter.post("/subscription", validate(subscriptionCreateSchema), asyncHandler(controllers.createSubscription));   //create a subscription for the current user //Payment should be created along with subscription
-userRouter.patch("/subscription/:id/status", validate(idSchema), checkSubscrptionOwnership, asyncHandler(controllers.changeSubscription));  //change the current user's subscription status to cancelled
+userRouter.post("/subscriptions", validate(subscriptionCreateSchema), asyncHandler(controllers.createSubscription));   //create a subscription for the current user //Payment should be created along with subscription
+userRouter.patch("/subscriptions/:id/status", validate(idSchema), checkSubscrptionOwnership, asyncHandler(controllers.changeSubscription));  //change the current user's subscription status to cancelled
 
 userRouter.get("/payments", validate(paymentQuerySchema), asyncHandler(controllers.getPayment));
 userRouter.get("/payments/:id", validate(idSchema), checkPaymentOwnership, asyncHandler(controllers.getPayment));

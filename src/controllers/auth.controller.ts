@@ -118,13 +118,17 @@ export async function refresh(req: Request, res: Response){
 
 export async function logout(req: Request, res: Response){
     const parsed = parseRefreshCredential(req.cookies?.[REFRESH_COOKIE_NAME]);
-
+    
     if(!parsed){
         res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieBaseOptions)
         return res.status(401).json({message: "Refresh Session Required!"});
     }
-    await services.loggingOut(parsed);
-
+    const session = await services.loggingOut(parsed);
+    if(!session){
+        return res.status(404).json({message: "Unable to logout!"})
+    }
+    
+    console.log("Logout service result:", session);
     res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieBaseOptions);
     return res.status(200).json({message: "Logged Out!"})
 };

@@ -11,7 +11,7 @@ export async function getPlan(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unable to Find Plan"});
     }
 
-    return res.status(200).json({messaeg: "Plans Found!", plan});
+    return res.status(200).json({message: "Plans Found!", plan});
 };
 
 export async function getPlanPrice(req: Request<{id: string}>, res: Response){
@@ -23,7 +23,7 @@ export async function getPlanPrice(req: Request<{id: string}>, res: Response){
         return res.status(404).json({message: "Unable to Find Price"});
     }
 
-    return res.status(200).json({messaeg: "Prices Found!", price});
+    return res.status(200).json({message: "Prices Found!", price});
 };
 
 export async function changePlanPrice(req: Request<{id: string}>, res: Response){
